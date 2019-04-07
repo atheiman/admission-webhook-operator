@@ -47,7 +47,7 @@ rules:
   verbs:
   - update
 - apiGroups:
-  - admissionwebhook.operator.k8s.io
+  - admissionwebhookoperator.k8s.io
   resources:
   - '*'
   verbs:
