@@ -1,0 +1,5 @@
+---
+- version: v1alpha1
+  group: admissionwebhook.operator.k8s.io
+  kind: AdmissionWebhook
+  chart: /opt/helm/helm-charts/admissionwebhook
