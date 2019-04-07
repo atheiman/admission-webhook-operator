@@ -19,22 +19,39 @@ spec:
         app.kubernetes.io/name: {{ include "admissionwebhook.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      volumes:
+        - name: webhook-tls
+          secret:
+            secretName: {{ include "admissionwebhook.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- with .Values.container.envVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: webhook-tls
+              mountPath: {{ .Values.tls.mountPaths.key }}
+              subPath: key.pem
+              readOnly: true
+            - name: webhook-tls
+              mountPath: {{ .Values.tls.mountPaths.cert }}
+              subPath: cert.pem
+              readOnly: true
           ports:
-            - name: http
-              containerPort: 80
+            - name: https
+              containerPort: {{ .Values.api.port }}
               protocol: TCP
+          {{- if ne "" .Values.api.health }}
           livenessProbe:
             httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+              scheme: HTTPS
+              path: {{ .Values.api.health }}
+              port: https
+            initialDelaySeconds: 15
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
